@@ -28,7 +28,7 @@ def index():
 def run_instaloader():
     username = request.form['username']
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    command = f"python3 {current_dir}/instaloader.py {username}"
+    command = f"python3 {current_dir}/instaloader_script.py {username}"
     os.system(command)
     return f"Kullanıcı {username} için Instaloader çalıştırıldı!"
 
