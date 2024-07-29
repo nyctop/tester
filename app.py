@@ -36,7 +36,6 @@ def index():
 @app.route('/run_instaloader', methods=['POST'])
 def run_instaloader():
     username = request.form['username']
-    current_dir = os.path.dirname(os.path.abspath(__file__))
     command = f"instaloader --dirname-pattern={DOWNLOAD_FOLDER}/{username} profile {username}"
     os.system(command)
     return f"Kullanıcı {username} için Instaloader çalıştırıldı! <a href='/'>Geri Dön</a>"
