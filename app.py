@@ -27,9 +27,9 @@ def index():
 @app.route('/run_instaloader', methods=['POST'])
 def run_instaloader():
     username = request.form['username']
-    command = f"python3 instaloader.py {username}"
+    command = f"python3 /root/instagramtools/tester/instaloader.py {username}"
     os.system(command)
     return f"Kullanıcı {username} için Instaloader çalıştırıldı!"
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
