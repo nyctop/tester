@@ -30,6 +30,13 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
         button {
             width: 100%;
             padding: 10px;
@@ -49,6 +56,15 @@
         <h1>Instagram İndirici</h1>
         <form action="/download" method="post">
             <input type="text" name="username" placeholder="Instagram kullanıcı adı" required>
+            <select name="content_type">
+                <option value="photos">Photos</option>
+                <option value="videos">Videos</option>
+                <option value="reels">Reels</option>
+                <option value="stories">Stories</option>
+                <option value="highlights">Highlights</option>
+                <option value="profile">Profile</option>
+                <option value="igtv">IGTV</option>
+            </select>
             <button type="submit">İndir</button>
         </form>
         <a href="/files">İndirilen Dosyaları Gör</a>
