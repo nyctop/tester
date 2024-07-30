@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template_string, send_from_directory
+from flask import Flask, request, render_template_string, send_from_directory, redirect, url_for
 import os
 import requests
 from bs4 import BeautifulSoup
@@ -7,6 +7,16 @@ app = Flask(__name__)
 DOWNLOAD_FOLDER = 'downloads'
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
+CONTENT_URLS = {
+    'photos': 'https://instagramdownloads.com/photo',
+    'videos': 'https://instagramdownloads.com/video',
+    'reels': 'https://instagramdownloads.com/reels',
+    'stories': 'https://instagramdownloads.com/story-saver',
+    'highlights': 'https://instagramdownloads.com/highlights',
+    'profile': 'https://instagramdownloads.com/profile',
+    'igtv': 'https://instagramdownloads.com/igtv',
+}
+
 @app.route('/')
 def index():
     return render_template_string(open('index.html').read())
@@ -14,8 +24,10 @@ def index():
 @app.route('/download', methods=['POST'])
 def download():
     username = request.form['username']
-    url = 'https://instagramdownloads.com/'
-    payload = {'username': username}
+    content_type = request.form['content_type']
+    url = CONTENT_URLS.get(content_type, 'https://instagramdownloads.com/')
+
+    payload = {'url': f'https://www.instagram.com/{username}'}
     
     # `instagramdownloads.com` sitesine POST isteği gönderme
     response = requests.post(url, data=payload)
@@ -31,11 +43,12 @@ def download():
     # İndirilen dosyaları saklama
     for idx, link in enumerate(download_links):
         r = requests.get(link, allow_redirects=True)
-        filename = os.path.join(DOWNLOAD_FOLDER, f'{username}_{idx}.jpg')
+        ext = link.split('.')[-1]
+        filename = os.path.join(DOWNLOAD_FOLDER, f'{username}_{content_type}_{idx}.{ext}')
         with open(filename, 'wb') as f:
             f.write(r.content)
     
-    return 'İndirme işlemi tamamlandı. <a href="/files">İndirilen Dosyaları Gör</a>'
+    return redirect(url_for('list_files'))
 
 @app.route('/files')
 def list_files():
