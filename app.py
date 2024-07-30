@@ -29,16 +29,27 @@ def download():
 
     payload = {'url': f'https://www.instagram.com/{username}'}
     
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    
     # `instagramdownloads.com` sitesine POST isteği gönderme
-    response = requests.post(url, data=payload)
+    response = requests.post(url, data=payload, headers=headers)
     
     if response.status_code != 200:
         return 'Bir hata oluştu, lütfen tekrar deneyin.'
+
+    # Dönen HTML içeriğini logla (debug amaçlı)
+    with open('response.html', 'w', encoding='utf-8') as f:
+        f.write(response.text)
 
     # HTML içeriğini işleme
     soup = BeautifulSoup(response.text, 'html.parser')
     links = soup.find_all('a', href=True)
     download_links = [link['href'] for link in links if 'download' in link['href']]
+
+    if not download_links:
+        return 'İndirilecek içerik bulunamadı.'
 
     # İndirilen dosyaları saklama
     for idx, link in enumerate(download_links):
