@@ -39,9 +39,8 @@ def download():
     if response.status_code != 200:
         return 'Bir hata oluştu, lütfen tekrar deneyin.'
 
-    # Dönen HTML içeriğini logla (debug amaçlı)
-    with open('response.html', 'w', encoding='utf-8') as f:
-        f.write(response.text)
+    # Dönen HTML içeriğini konsola yazdır (debug amaçlı)
+    print(response.text)
 
     # HTML içeriğini işleme
     soup = BeautifulSoup(response.text, 'html.parser')
