@@ -40,6 +40,7 @@ def download():
         return 'Bir hata oluştu, lütfen tekrar deneyin.'
 
     # Dönen HTML içeriğini konsola yazdır (debug amaçlı)
+    print("Dönen HTML içeriği:")
     print(response.text)
 
     # HTML içeriğini işleme
@@ -47,11 +48,15 @@ def download():
     links = soup.find_all('a', href=True)
     download_links = [link['href'] for link in links if 'download' in link['href']]
 
+    print("Bulunan indirme bağlantıları:")
+    print(download_links)
+
     if not download_links:
         return 'İndirilecek içerik bulunamadı.'
 
     # İndirilen dosyaları saklama
     for idx, link in enumerate(download_links):
+        print(f"İndirme bağlantısı: {link}")
         r = requests.get(link, allow_redirects=True)
         ext = link.split('.')[-1]
         filename = os.path.join(DOWNLOAD_FOLDER, f'{username}_{content_type}_{idx}.{ext}')
