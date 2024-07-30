@@ -46,9 +46,8 @@ def download():
     # HTML içeriğini işleme
     soup = BeautifulSoup(response.text, 'html.parser')
     
-    # İndirme bağlantılarını bulma
-    # Örnek olarak 'btn--download' sınıfını içeren tüm <a> etiketlerini bulalım
-    links = soup.find_all('a', class_='btn--download', href=True)
+    # Örnek olarak 'download-btn' sınıfını içeren tüm <a> etiketlerini bulalım
+    links = soup.find_all('a', class_='download-btn', href=True)
     download_links = [link['href'] for link in links]
 
     print("Bulunan indirme bağlantıları:")
@@ -61,10 +60,13 @@ def download():
     for idx, link in enumerate(download_links):
         print(f"İndirme bağlantısı: {link}")
         r = requests.get(link, allow_redirects=True)
-        ext = link.split('.')[-1]
-        filename = os.path.join(DOWNLOAD_FOLDER, f'{username}_{content_type}_{idx}.{ext}')
-        with open(filename, 'wb') as f:
-            f.write(r.content)
+        if r.status_code == 200:
+            ext = link.split('.')[-1]
+            filename = os.path.join(DOWNLOAD_FOLDER, f'{username}_{content_type}_{idx}.{ext}')
+            with open(filename, 'wb') as f:
+                f.write(r.content)
+        else:
+            print(f"Dosya indirilirken hata oluştu: {link}")
     
     return redirect(url_for('list_files'))
 
