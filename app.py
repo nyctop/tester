@@ -46,8 +46,8 @@ def download():
     # HTML içeriğini işleme
     soup = BeautifulSoup(response.text, 'html.parser')
     
-    # Örnek olarak 'download-btn' sınıfını içeren tüm <a> etiketlerini bulalım
-    links = soup.find_all('a', class_='download-btn', href=True)
+    # Örnek olarak 'btn--download' sınıfını içeren tüm <a> etiketlerini bulalım
+    links = soup.find_all('a', class_='btn--download', href=True)
     download_links = [link['href'] for link in links]
 
     print("Bulunan indirme bağlantıları:")
