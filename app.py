@@ -1,12 +1,11 @@
-from flask import Flask, request, send_from_directory, render_template_string, jsonify
+from flask import Flask, request, render_template_string, send_from_directory
 import os
-import subprocess
-import json
-import instaloader
+import requests
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 DOWNLOAD_FOLDER = 'downloads'
-LOCATION_FILE = 'locations.json'
+os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
 @app.route('/')
 def index():
@@ -15,26 +14,27 @@ def index():
 @app.route('/download', methods=['POST'])
 def download():
     username = request.form['username']
-    os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+    url = 'https://instagramdownloads.com/'
+    payload = {'username': username}
     
-    # Instagram içeriklerini indirme ve konum bilgilerini çıkartma
-    loader = instaloader.Instaloader(dirname_pattern=DOWNLOAD_FOLDER)
-    profile = instaloader.Profile.from_username(loader.context, username)
-    locations = []
+    # `instagramdownloads.com` sitesine POST isteği gönderme
+    response = requests.post(url, data=payload)
+    
+    if response.status_code != 200:
+        return 'Bir hata oluştu, lütfen tekrar deneyin.'
 
-    for post in profile.get_posts():
-        if post.location:
-            location_info = {
-                'title': post.title,
-                'latitude': post.location.lat,
-                'longitude': post.location.lng,
-                'type': 'Video' if post.is_video else 'Photo'
-            }
-            locations.append(location_info)
+    # HTML içeriğini işleme
+    soup = BeautifulSoup(response.text, 'html.parser')
+    links = soup.find_all('a', href=True)
+    download_links = [link['href'] for link in links if 'download' in link['href']]
 
-    with open(os.path.join(DOWNLOAD_FOLDER, LOCATION_FILE), 'w') as f:
-        json.dump(locations, f)
-
+    # İndirilen dosyaları saklama
+    for idx, link in enumerate(download_links):
+        r = requests.get(link, allow_redirects=True)
+        filename = os.path.join(DOWNLOAD_FOLDER, f'{username}_{idx}.jpg')
+        with open(filename, 'wb') as f:
+            f.write(r.content)
+    
     return 'İndirme işlemi tamamlandı. <a href="/files">İndirilen Dosyaları Gör</a>'
 
 @app.route('/files')
@@ -80,26 +80,6 @@ def list_files():
         {% endfor %}
         </ul>
         <a href="/">Geri Dön</a>
-        <h2>Harita Üzerinde Gör</h2>
-        <div id="map" style="height: 500px;"></div>
-        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-        <script>
-            var map = L.map('map').setView([0, 0], 2);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
-
-            fetch('/locations')
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(location => {
-                        L.marker([location.latitude, location.longitude])
-                            .bindPopup(`<b>${location.title}</b><br>${location.type}`)
-                            .addTo(map);
-                    });
-                });
-        </script>
     </body>
     </html>
     """, files=files)
@@ -107,12 +87,6 @@ def list_files():
 @app.route('/files/<filename>')
 def serve_file(filename):
     return send_from_directory(DOWNLOAD_FOLDER, filename)
-
-@app.route('/locations')
-def locations():
-    with open(os.path.join(DOWNLOAD_FOLDER, LOCATION_FILE), 'r') as f:
-        locations = json.load(f)
-    return jsonify(locations)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
