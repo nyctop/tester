@@ -1,125 +1,108 @@
-from flask import Flask, request, render_template_string, send_from_directory, redirect, url_for
-import os
+from flask import Flask, render_template_string, request
 import requests
-from bs4 import BeautifulSoup
+import json
+from datetime import datetime
 
 app = Flask(__name__)
-DOWNLOAD_FOLDER = 'downloads'
-os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
-CONTENT_URLS = {
-    'photos': 'https://instagramdownloads.com/photo',
-    'videos': 'https://instagramdownloads.com/video',
-    'reels': 'https://instagramdownloads.com/reels',
-    'stories': 'https://instagramdownloads.com/story-saver',
-    'highlights': 'https://instagramdownloads.com/highlights',
-    'profile': 'https://instagramdownloads.com/profile',
-    'igtv': 'https://instagramdownloads.com/igtv',
-}
+USERNAME = 'OSSOSS'
+ACCESS_KEY = 'xOXpI50pVpssrQoAYLemrpl1UmXfs9wO'
+API_URL = 'https://api.hikerapi.com/a2/user'
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template_string(open('index.html').read())
+    if request.method == 'POST':
+        target_username = request.form['username']
+        url = f"{API_URL}?username={target_username}"
+        headers = {
+            'accept': 'application/json',
+            'x-access-key': ACCESS_KEY
+        }
 
-@app.route('/download', methods=['POST'])
-def download():
-    username = request.form['username']
-    content_type = request.form['content_type']
-    url = CONTENT_URLS.get(content_type, 'https://instagramdownloads.com/')
+        response = requests.get(url, headers=headers)
 
-    payload = {'url': f'https://www.instagram.com/{username}'}
-    
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-    
-    # `instagramdownloads.com` sitesine POST isteği gönderme
-    response = requests.post(url, data=payload, headers=headers)
-    
-    if response.status_code != 200:
-        return 'Bir hata oluştu, lütfen tekrar deneyin.'
-
-    # Dönen HTML içeriğini konsola yazdır (debug amaçlı)
-    print("Dönen HTML içeriği:")
-    print(response.text)
-
-    # HTML içeriğini işleme
-    soup = BeautifulSoup(response.text, 'html.parser')
-    
-    # Daha genel bir indirme bağlantısı seçici
-    links = soup.find_all('a', href=True)
-    download_links = [link['href'] for link in links if 'download' in link.text.lower() or 'download' in link['href'].lower()]
-
-    print("Bulunan indirme bağlantıları:")
-    print(download_links)
-
-    if not download_links:
-        return 'İndirilecek içerik bulunamadı.'
-
-    # İndirilen dosyaları saklama
-    for idx, link in enumerate(download_links):
-        print(f"İndirme bağlantısı: {link}")
-        r = requests.get(link, allow_redirects=True)
-        if r.status_code == 200:
-            ext = link.split('.')[-1]
-            filename = os.path.join(DOWNLOAD_FOLDER, f'{username}_{content_type}_{idx}.{ext}')
-            with open(filename, 'wb') as f:
-                f.write(r.content)
+        if response.status_code == 200:
+            user_info = response.json()
+            user = user_info['graphql']['user']
+            return render_template_string(html_template, user=user)
         else:
-            print(f"Dosya indirilirken hata oluştu: {link}")
-    
-    return redirect(url_for('list_files'))
+            return f"Error fetching data: {response.status_code}"
+    return render_template_string(form_template)
 
-@app.route('/files')
-def list_files():
-    files = os.listdir(DOWNLOAD_FOLDER)
-    return render_template_string("""
-    <!DOCTYPE html>
-    <html lang="tr">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>İndirilen Dosyalar</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f4f4f4;
-                padding: 20px;
-            }
-            h1 {
-                margin-bottom: 20px;
-            }
-            ul {
-                list-style-type: none;
-                padding: 0;
-            }
-            li {
-                margin: 5px 0;
-            }
-            a {
-                text-decoration: none;
-                color: #007bff;
-            }
-            a:hover {
-                text-decoration: underline;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>İndirilen Dosyalar</h1>
-        <ul>
-        {% for file in files %}
-            <li><a href="/files/{{ file }}">{{ file }}</a></li>
+form_template = """
+<html>
+<head>
+    <title>Kullanıcı Bilgileri</title>
+</head>
+<body>
+    <h1>Kullanıcı Bilgileri</h1>
+    <form method="POST">
+        <label for="username">Kullanıcı Adı:</label>
+        <input type="text" id="username" name="username" required>
+        <button type="submit">Getir</button>
+    </form>
+</body>
+</html>
+"""
+
+html_template = """
+<html>
+<head>
+    <title>Kullanıcı Bilgileri</title>
+    <style>
+        table {{ width: 100%; border-collapse: collapse; }}
+        th, td {{ border: 1px solid black; padding: 8px; text-align: left; }}
+        th {{ background-color: #f2f2f2; }}
+    </style>
+</head>
+<body>
+    <h1>Kullanıcı Bilgileri</h1>
+    <table>
+        <tr><th>Attribute</th><th>Value</th></tr>
+        <tr><td>ID</td><td>{{ user['id'] }}</td></tr>
+        <tr><td>Biography</td><td>{{ user['biography'] }}</td></tr>
+        <tr><td>Full Name</td><td>{{ user['full_name'] }}</td></tr>
+        <tr><td>Followers</td><td>{{ user['edge_followed_by']['count'] }}</td></tr>
+        <tr><td>Following</td><td>{{ user['edge_follow']['count'] }}</td></tr>
+        <tr><td>Profile Picture URL</td><td><a href="{{ user['profile_pic_url'] }}" target="_blank">Profile Picture</a></td></tr>
+        <tr><td>High-Res Profile Picture URL</td><td><a href="{{ user['profile_pic_url_hd'] }}" target="_blank">High-Res Profile Picture</a></td></tr>
+        <tr><td>Total Posts</td><td>{{ user['edge_owner_to_timeline_media']['count'] }}</td></tr>
+    </table>
+    <h2>Recent Posts</h2>
+    <table>
+        <tr>
+            <th>Post ID</th>
+            <th>Caption</th>
+            <th>Likes</th>
+            <th>Comments</th>
+            <th>Location</th>
+            <th>Images</th>
+            <th>Date</th>
+        </tr>
+        {% for edge in user['edge_owner_to_timeline_media']['edges'] %}
+            {% set post = edge['node'] %}
+            <tr>
+                <td>{{ post['id'] }}</td>
+                <td>{{ post['edge_media_to_caption']['edges'][0]['node']['text'] if post['edge_media_to_caption']['edges'] else '' }}</td>
+                <td>{{ post['edge_liked_by']['count'] }}</td>
+                <td>{{ post['edge_media_to_comment']['count'] }}</td>
+                <td>{{ post['location']['name'] if 'location' in post and post['location'] else 'N/A' }}</td>
+                <td>
+                    {% if post['__typename'] == 'GraphSidecar' %}
+                        {% for child in post['edge_sidecar_to_children']['edges'] %}
+                            <a href="{{ child['node']['display_url'] }}" target="_blank"><img src="{{ child['node']['thumbnail_url'] }}" width="50"></a>
+                        {% endfor %}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>{{ datetime.fromtimestamp(post['taken_at_timestamp']).strftime('%Y-%m-%d %H:%M:%S') if 'taken_at_timestamp' in post else 'N/A' }}</td>
+            </tr>
         {% endfor %}
-        </ul>
-        <a href="/">Geri Dön</a>
-    </body>
-    </html>
-    """, files=files)
-
-@app.route('/files/<filename>')
-def serve_file(filename):
-    return send_from_directory(DOWNLOAD_FOLDER, filename)
+    </table>
+</body>
+</html>
+"""
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(debug=True)
