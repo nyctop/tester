@@ -73,8 +73,8 @@ html_template = """
         <tr><td>Full Name</td><td>{{ user.full_name }}</td></tr>
         <tr><td>Followers</td><td>{{ user.edge_followed_by.count }}</td></tr>
         <tr><td>Following</td><td>{{ user.edge_follow.count }}</td></tr>
-        <tr><td>Profile Picture URL</td><td><a href="{{ user.profile_pic_url }}" target="_blank">Profile Picture</a></td></tr>
-        <tr><td>High-Res Profile Picture URL</td><td><a href="{{ user.profile_pic_url_hd }}" target="_blank">High-Res Profile Picture</a></td></tr>
+        <tr><td>Profile Picture</td><td><img src="{{ user.profile_pic_url }}" alt="Profile Picture" width="100"></td></tr>
+        <tr><td>High-Res Profile Picture</td><td><img src="{{ user.profile_pic_url_hd }}" alt="High-Res Profile Picture" width="100"></td></tr>
         <tr><td>Total Posts</td><td>{{ user.edge_owner_to_timeline_media.count }}</td></tr>
     </table>
     <h2>Recent Posts</h2>
