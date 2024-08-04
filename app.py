@@ -62,6 +62,10 @@ html_template = """
         th {
             background-color: #f2f2f2;
         }
+        img {
+            max-width: 100px;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -73,8 +77,8 @@ html_template = """
         <tr><td>Full Name</td><td>{{ user.full_name }}</td></tr>
         <tr><td>Followers</td><td>{{ user.edge_followed_by.count }}</td></tr>
         <tr><td>Following</td><td>{{ user.edge_follow.count }}</td></tr>
-        <tr><td>Profile Picture</td><td><img src="{{ user.profile_pic_url }}" alt="Profile Picture" width="100"></td></tr>
-        <tr><td>High-Res Profile Picture</td><td><img src="{{ user.profile_pic_url_hd }}" alt="High-Res Profile Picture" width="100"></td></tr>
+        <tr><td>Profile Picture</td><td>{% if user.profile_pic_url %}<img src="{{ user.profile_pic_url }}" alt="Profile Picture">{% else %}Profile picture not available{% endif %}</td></tr>
+        <tr><td>High-Res Profile Picture</td><td>{% if user.profile_pic_url_hd %}<img src="{{ user.profile_pic_url_hd }}" alt="High-Res Profile Picture">{% else %}High-res profile picture not available{% endif %}</td></tr>
         <tr><td>Total Posts</td><td>{{ user.edge_owner_to_timeline_media.count }}</td></tr>
     </table>
     <h2>Recent Posts</h2>
@@ -99,10 +103,18 @@ html_template = """
                 <td>
                     {% if post.__typename == 'GraphSidecar' %}
                         {% for child in post.edge_sidecar_to_children.edges %}
-                            <a href="{{ child.node.display_url }}" target="_blank"><img src="{{ child.node.thumbnail_url }}" width="50"></a>
+                            {% if child.node.display_url %}
+                                <a href="{{ child.node.display_url }}" target="_blank"><img src="{{ child.node.thumbnail_url }}" width="50"></a>
+                            {% else %}
+                                Image not available
+                            {% endif %}
                         {% endfor %}
                     {% else %}
-                        N/A
+                        {% if post.display_url %}
+                            <a href="{{ post.display_url }}" target="_blank"><img src="{{ post.thumbnail_url }}" width="50"></a>
+                        {% else %}
+                            Image not available
+                        {% endif %}
                     {% endif %}
                 </td>
                 <td>{{ datetime.fromtimestamp(post.taken_at_timestamp).strftime('%Y-%m-%d %H:%M:%S') if post.taken_at_timestamp else 'N/A' }}</td>
