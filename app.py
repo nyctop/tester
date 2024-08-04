@@ -1,6 +1,5 @@
 from flask import Flask, render_template_string, request
 import requests
-import json
 from datetime import datetime
 
 app = Flask(__name__)
@@ -46,13 +45,23 @@ form_template = """
 """
 
 html_template = """
+<!DOCTYPE html>
 <html>
 <head>
     <title>Kullanıcı Bilgileri</title>
     <style>
-        table {{ width: 100%; border-collapse: collapse; }}
-        th, td {{ border: 1px solid black; padding: 8px; text-align: left; }}
-        th {{ background-color: #f2f2f2; }}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 <body>
