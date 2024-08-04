@@ -4,8 +4,8 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-USERNAME = 'OSSOSS'
-ACCESS_KEY = 'xOXpI50pVpssrQoAYLemrpl1UmXfs9wO'
+USERNAME = 'xxxxx'
+ACCESS_KEY = 'xxxxx'
 API_URL = 'https://api.hikerapi.com/a2/user'
 
 @app.route('/', methods=['GET', 'POST'])
