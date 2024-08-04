@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 USERNAME = 'xxxxx'
 ACCESS_KEY = 'xxxxx'
-API_URL = 'https://api.hikerapi.com/a2/user'
+API_URL = 'https://api.xxxxxx.com/a2/user'
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
