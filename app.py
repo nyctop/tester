@@ -59,14 +59,14 @@ html_template = """
     <h1>Kullanıcı Bilgileri</h1>
     <table>
         <tr><th>Attribute</th><th>Value</th></tr>
-        <tr><td>ID</td><td>{{ user['id'] }}</td></tr>
-        <tr><td>Biography</td><td>{{ user['biography'] }}</td></tr>
-        <tr><td>Full Name</td><td>{{ user['full_name'] }}</td></tr>
-        <tr><td>Followers</td><td>{{ user['edge_followed_by']['count'] }}</td></tr>
-        <tr><td>Following</td><td>{{ user['edge_follow']['count'] }}</td></tr>
-        <tr><td>Profile Picture URL</td><td><a href="{{ user['profile_pic_url'] }}" target="_blank">Profile Picture</a></td></tr>
-        <tr><td>High-Res Profile Picture URL</td><td><a href="{{ user['profile_pic_url_hd'] }}" target="_blank">High-Res Profile Picture</a></td></tr>
-        <tr><td>Total Posts</td><td>{{ user['edge_owner_to_timeline_media']['count'] }}</td></tr>
+        <tr><td>ID</td><td>{{ user.id }}</td></tr>
+        <tr><td>Biography</td><td>{{ user.biography }}</td></tr>
+        <tr><td>Full Name</td><td>{{ user.full_name }}</td></tr>
+        <tr><td>Followers</td><td>{{ user.edge_followed_by.count }}</td></tr>
+        <tr><td>Following</td><td>{{ user.edge_follow.count }}</td></tr>
+        <tr><td>Profile Picture URL</td><td><a href="{{ user.profile_pic_url }}" target="_blank">Profile Picture</a></td></tr>
+        <tr><td>High-Res Profile Picture URL</td><td><a href="{{ user.profile_pic_url_hd }}" target="_blank">High-Res Profile Picture</a></td></tr>
+        <tr><td>Total Posts</td><td>{{ user.edge_owner_to_timeline_media.count }}</td></tr>
     </table>
     <h2>Recent Posts</h2>
     <table>
@@ -79,24 +79,24 @@ html_template = """
             <th>Images</th>
             <th>Date</th>
         </tr>
-        {% for edge in user['edge_owner_to_timeline_media']['edges'] %}
-            {% set post = edge['node'] %}
+        {% for edge in user.edge_owner_to_timeline_media.edges %}
+            {% set post = edge.node %}
             <tr>
-                <td>{{ post['id'] }}</td>
-                <td>{{ post['edge_media_to_caption']['edges'][0]['node']['text'] if post['edge_media_to_caption']['edges'] else '' }}</td>
-                <td>{{ post['edge_liked_by']['count'] }}</td>
-                <td>{{ post['edge_media_to_comment']['count'] }}</td>
-                <td>{{ post['location']['name'] if 'location' in post and post['location'] else 'N/A' }}</td>
+                <td>{{ post.id }}</td>
+                <td>{{ post.edge_media_to_caption.edges[0].node.text if post.edge_media_to_caption.edges else '' }}</td>
+                <td>{{ post.edge_liked_by.count }}</td>
+                <td>{{ post.edge_media_to_comment.count }}</td>
+                <td>{{ post.location.name if post.location else 'N/A' }}</td>
                 <td>
-                    {% if post['__typename'] == 'GraphSidecar' %}
-                        {% for child in post['edge_sidecar_to_children']['edges'] %}
-                            <a href="{{ child['node']['display_url'] }}" target="_blank"><img src="{{ child['node']['thumbnail_url'] }}" width="50"></a>
+                    {% if post.__typename == 'GraphSidecar' %}
+                        {% for child in post.edge_sidecar_to_children.edges %}
+                            <a href="{{ child.node.display_url }}" target="_blank"><img src="{{ child.node.thumbnail_url }}" width="50"></a>
                         {% endfor %}
                     {% else %}
                         N/A
                     {% endif %}
                 </td>
-                <td>{{ datetime.fromtimestamp(post['taken_at_timestamp']).strftime('%Y-%m-%d %H:%M:%S') if 'taken_at_timestamp' in post else 'N/A' }}</td>
+                <td>{{ datetime.fromtimestamp(post.taken_at_timestamp).strftime('%Y-%m-%d %H:%M:%S') if post.taken_at_timestamp else 'N/A' }}</td>
             </tr>
         {% endfor %}
     </table>
